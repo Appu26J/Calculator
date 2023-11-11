@@ -3,6 +3,8 @@ package appu26j.gui.screens;
 import appu26j.gui.Gui;
 
 import java.awt.*;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 
 public class Button
@@ -10,9 +12,22 @@ public class Button
     private final GuiCalculator guiCalculator;
     private final float x, y, width, height;
     private final String text;
+    private boolean number;
+
+    public Button(String text, boolean number, float x, float y, float width, float height, GuiCalculator guiCalculator)
+    {
+        this.text = text;
+        this.number = number;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.guiCalculator = guiCalculator;
+    }
 
     public Button(String text, float x, float y, float width, float height, GuiCalculator guiCalculator)
     {
+        this.number = true;
         this.text = text;
         this.x = x;
         this.y = y;
@@ -68,228 +83,145 @@ public class Button
 
             else
             {
-                String[] parts = this.separateNumbersAndLetters(this.guiCalculator.getEquation());
+                String[] parts = this.guiCalculator.getEquation().split(" ");
 
-                if (!this.text.equals("=") && (parts.length < 3 || !this.isOperation(this.text)) && !this.guiCalculator.getEquation().endsWith("xx") && !this.guiCalculator.getEquation().endsWith("root") && !this.guiCalculator.getEquation().endsWith("sin") && !this.guiCalculator.getEquation().endsWith("cos") && !this.guiCalculator.getEquation().endsWith("&"))
+                if ((parts.length < (this.guiCalculator.getEquation().endsWith("xx") || this.guiCalculator.getEquation().endsWith("root") || this.guiCalculator.getEquation().endsWith("sin") || this.guiCalculator.getEquation().endsWith("cos") || this.guiCalculator.getEquation().endsWith("&") ? 2 : 3) || (this.number && !this.guiCalculator.getEquation().endsWith("xx") && !this.guiCalculator.getEquation().endsWith("root") && !this.guiCalculator.getEquation().endsWith("sin") && !this.guiCalculator.getEquation().endsWith("cos") && !this.guiCalculator.getEquation().endsWith("&"))) && !(this.guiCalculator.containsOperator(this.guiCalculator.getEquation()) && !this.number) && !this.text.equals("="))
                 {
-                    String textToAppend = this.text;
+                    String text = this.text;
 
-                    switch (textToAppend)
+                    if (text.equals("x2"))
                     {
-                        case "1/x":
-                        {
-                            textToAppend = "&";
-                            break;
-                        }
-
-                        case "x2":
-                        {
-                            textToAppend = "xx";
-                            break;
-                        }
+                        text = "xx";
                     }
 
-                    if (!isOperation(textToAppend) || (!this.guiCalculator.getEquation().contains("xx") && !this.guiCalculator.getEquation().contains("root") && !this.guiCalculator.getEquation().contains("sin") && !this.guiCalculator.getEquation().contains("cos") && !this.guiCalculator.getEquation().contains("/") && !this.guiCalculator.getEquation().contains("%") && !this.guiCalculator.getEquation().contains("*") && !this.guiCalculator.getEquation().contains("&") && !this.guiCalculator.getEquation().contains("-") && !this.guiCalculator.getEquation().contains("+")))
+                    else if (text.equals("1/x"))
                     {
-                        this.guiCalculator.appendEquation(textToAppend);
+                        text = "&";
                     }
+
+                    this.guiCalculator.appendEquation(this.number && (this.guiCalculator.getEquation().endsWith("0") || this.guiCalculator.getEquation().endsWith("1") || this.guiCalculator.getEquation().endsWith("2") || this.guiCalculator.getEquation().endsWith("3") || this.guiCalculator.getEquation().endsWith("4") || this.guiCalculator.getEquation().endsWith("5") || this.guiCalculator.getEquation().endsWith("6") || this.guiCalculator.getEquation().endsWith("7") || this.guiCalculator.getEquation().endsWith("8") || this.guiCalculator.getEquation().endsWith("9") || this.guiCalculator.getEquation().endsWith(".")) ? text : (" " + text));
                 }
 
                 else
                 {
-                    // String[] parts = this.guiCalculator.getEquation().split("(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)");
-
-                    if (parts.length >= 2)
+                    try
                     {
                         ArrayList<Double> numbers = new ArrayList<>();
 
                         for (String part : parts)
                         {
-                            if (part.isEmpty())
+                            if (!this.guiCalculator.containsOperator(part))
                             {
-                                continue;
-                            }
-
-                            if (!isOperation(part))
-                            {
-                                try
-                                {
-                                    numbers.add(Double.parseDouble(part));
-                                }
-
-                                catch (Exception e)
-                                {
-                                    ;
-                                }
+                                numbers.add(Double.valueOf(part));
                             }
                         }
 
-                        this.guiCalculator.clearEquation();
-                        String operator = parts[1], answer = "0";
+                        double answer = 0;
 
-                        try
+                        switch (parts[1])
                         {
-                            if (parts.length == 2)
+                            case "xx":
                             {
-                                switch (operator)
-                                {
-                                    case "xx":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) * numbers.get(0));
-                                        break;
-                                    }
-
-                                    case "root":
-                                    {
-                                        answer = String.valueOf(Math.sqrt(numbers.get(0)));
-                                        break;
-                                    }
-
-                                    case "sin":
-                                    {
-                                        answer = String.valueOf(Math.sin(numbers.get(0)));
-                                        break;
-                                    }
-
-                                    case "cos":
-                                    {
-                                        answer = String.valueOf(Math.cos(numbers.get(0)));
-                                        break;
-                                    }
-
-                                    case "&":
-                                    {
-                                        answer = String.valueOf(1 / numbers.get(0));
-                                        break;
-                                    }
-                                }
+                                answer = BigDecimal.valueOf(numbers.get(0)).multiply(BigDecimal.valueOf(numbers.get(0)), new MathContext(3)).doubleValue();
+                                break;
                             }
 
-                            else
+                            case "root":
                             {
-                                switch (operator)
-                                {
-                                    case "/":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) / numbers.get(1));
-                                        break;
-                                    }
-
-                                    case "%":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) % numbers.get(1));
-                                        break;
-                                    }
-
-                                    case "*":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) * numbers.get(1));
-                                        break;
-                                    }
-
-                                    case "-":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) - numbers.get(1));
-                                        break;
-                                    }
-
-                                    case "+":
-                                    {
-                                        answer = String.valueOf(numbers.get(0) + numbers.get(1));
-                                        break;
-                                    }
-                                }
+                                answer = BigDecimal.valueOf(Math.sqrt(numbers.get(0))).round(new MathContext(3)).doubleValue();
+                                break;
                             }
-                        }
 
-                        catch (Exception e)
-                        {
-                            ;
-                        }
+                            case "sin":
+                            {
+                                answer = BigDecimal.valueOf(Math.sin(numbers.get(0))).round(new MathContext(3)).doubleValue();
+                                break;
+                            }
 
-                        if (answer.length() > 10)
-                        {
-                            answer = answer.substring(0, 10);
-                        }
+                            case "cos":
+                            {
+                                answer = BigDecimal.valueOf(Math.cos(numbers.get(0))).round(new MathContext(3)).doubleValue();
+                                break;
+                            }
 
-                        if (answer.endsWith("0"))
-                        {
-                            answer = !answer.contains(".") ? answer : answer.replaceAll("0*$", "").replaceAll("\\.$", "");
+                            case "&":
+                            {
+                                answer = new BigDecimal(1).divide(BigDecimal.valueOf(numbers.get(0)), new MathContext(3)).doubleValue();
+                                break;
+                            }
+
+                            case "/":
+                            {
+                                answer = BigDecimal.valueOf(numbers.get(0)).divide(BigDecimal.valueOf(numbers.get(1)), new MathContext(3)).doubleValue();
+                                break;
+                            }
+
+                            case "%":
+                            {
+                                answer = BigDecimal.valueOf(numbers.get(0)).remainder(BigDecimal.valueOf(numbers.get(1)), new MathContext(3)).doubleValue();
+                                break;
+                            }
+
+                            case "*":
+                            {
+                                answer = BigDecimal.valueOf(numbers.get(0)).multiply(BigDecimal.valueOf(numbers.get(1)), new MathContext(3)).doubleValue();
+                                break;
+                            }
+
+                            case "-":
+                            {
+                                answer = BigDecimal.valueOf(numbers.get(0)).subtract(BigDecimal.valueOf(numbers.get(1)), new MathContext(3)).doubleValue();
+                                break;
+                            }
+
+                            case "+":
+                            {
+                                answer = BigDecimal.valueOf(numbers.get(0)).add(BigDecimal.valueOf(numbers.get(1)), new MathContext(3)).doubleValue();
+                                break;
+                            }
                         }
 
                         if (this.text.equals("="))
                         {
-                            this.guiCalculator.appendEquation(answer);
+                            String ans = String.valueOf(answer);
+
+                            if (ans.endsWith(".0"))
+                            {
+                                ans = ans.substring(0, ans.length() - 2);
+                            }
+
+                            this.guiCalculator.setEquation(ans);
                         }
 
                         else
                         {
-                            String textToAppend = this.text;
+                            String text = this.text, ans = String.valueOf(answer);
 
-                            switch (textToAppend)
+                            if (ans.endsWith(".0"))
                             {
-                                case "1/x":
-                                {
-                                    textToAppend = "&";
-                                    break;
-                                }
-
-                                case "x2":
-                                {
-                                    textToAppend = "xx";
-                                    break;
-                                }
+                                ans = ans.substring(0, ans.length() - 2);
                             }
 
-                            this.guiCalculator.appendEquation(answer + textToAppend);
+                            if (text.equals("x2"))
+                            {
+                                text = "xx";
+                            }
+
+                            else if (text.equals("1/x"))
+                            {
+                                text = "&";
+                            }
+
+                            this.guiCalculator.setEquation(this.number ? ans : (ans + " " + text));
                         }
+                    }
+
+                    catch (Exception e)
+                    {
+                        ;
                     }
                 }
             }
         }
-    }
-
-    private boolean isOperation(String text)
-    {
-        String[] allLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()-=_+/".split("");
-
-        for (String letter : allLetters)
-        {
-            if (text.contains(letter))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public String[] separateNumbersAndLetters(String text)
-    {
-        ArrayList<String> temp = new ArrayList<>();
-        StringBuilder tempVariable = new StringBuilder();
-        boolean aBoolean = false;
-
-        for (String letter : text.split(""))
-        {
-            if (!aBoolean && isOperation(letter))
-            {
-                temp.add(tempVariable.toString());
-                tempVariable = new StringBuilder();
-                aBoolean = true;
-            }
-
-            if (aBoolean && !isOperation(letter))
-            {
-                temp.add(tempVariable.toString());
-                tempVariable = new StringBuilder();
-                aBoolean = false;
-            }
-
-            tempVariable.append(letter);
-        }
-
-        temp.add(tempVariable.toString());
-        return temp.toArray(new String[0]);
     }
 }

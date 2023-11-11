@@ -6,4 +6,4 @@
 
 
 A calculator in Java! (OpenGL) (LWJGL)  
-The only thing that doesn't work is negative numbers :(
+Fully working :D
