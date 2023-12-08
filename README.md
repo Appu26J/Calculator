@@ -5,5 +5,8 @@
 
 
 
-A calculator in Java! (OpenGL) (LWJGL)  
+A calculator in Java, using OpenGL.
 Fully working :D
+
+### Workspace setup
+Just open this project using IntelliJ IDEA. *Everything is set up.*
